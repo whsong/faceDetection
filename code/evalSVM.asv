@@ -1,0 +1,63 @@
+inputDir = 'YALE\unpadded\';
+faceFiles = dir(fullfile(inputDir, '*.pgm'));
+bgFiles = dir(fullfile('bground','*.jpg'));
+nFaceFiles = length(faceFiles);
+nBgFiles = length(bgFiles);
+files = [faceFiles;bgFiles];
+hog=[];
+for i=1:nFaceFiles+nBgFiles
+    iFile = files(i);
+    im = imread(fullfile(iFile.folder,iFile.name));
+    im = imresize(im,[112,92]);% the size of att_faces, TODO
+    % N = prod([BlocksPerImage, BlockSize, NumBins]), BlocksPerImage = floor((size(I)./CellSize - BlockSize)./(BlockSize - BlockOverlap) + 1)
+    hog(i,:) = extractHOGFeatures(im,'NumBins',9);
+    
+end
+labels = nan(nFaceFiles+nBgFiles,1);
+labels(1:nFaceFiles) = 1;
+labels(nFaceFiles+1:end) = 0;
+
+SVMModel = fitcsvm(hog,labels,'kernelFunction','linear','kernelScale',1,'ClassNames',[1,0]);%'rbf'
+
+testFiles = dir(fullfile('nasa_small.jpg'));
+iFile = testFiles(1);
+im = rgb2gray(imread(fullfile(iFile.folder,iFile.name)));
+windows = slidingWindow(im, [20,20]);
+
+nWindow = size(windows,1);
+label = nan(nWindow,1);
+score = nan(nWindow,2);
+for i=1:nWindow
+    iWindow = windows(i,:);
+    imWindow = im(iWindow(1):iWindow(1)+iWindow(3), iWindow(2):iWindow(2)+iWindow(4));
+    imWindow = imresize(imWindow,[112,92]);
+    testFeatures = extractHOGFeatures(imWindow,'NumBins',9);
+    [label(i),score(i,:)] = predict(SVMModel,testFeatures);
+end
+
+positiveWindow = windows(label==1,:);
+
+for i=1:size(positiveWindow,1)
+    iPositiveWindow = positiveWindow(i,:);
+    rectangle('Position', iPositiveWindow, 'EdgeColor','g', 'LineWidth',2);
+end
+    
+    
+function windows = slidingWindow(im, startSize)
+%% startSize [h,w] row vector 
+% windows  consists of row vectors [left top width height], currently only consider square region
+[h,w] = size(im);
+scales = floor(1.5.^[0:4]'.*startSize);
+windows = [];
+for i = 1:length(scales)
+    iScale = scales(i,:);
+    stepSize = ceil(iScale./2);
+    % windowsPerImage = floor((size(im) - iScale)./stepSize + 1);
+    rowInd = 1:stepSize(1):h - iScale(1);
+    colInd = 1:stepSize(2):w - iScale(2);
+    nRow = length(rowInd);
+    nCol = length(colInd);
+    newWindows = [kron(rowInd.', ones(nCol,1)), kron(ones(nRow,1), colInd.'), iScale.*ones(nRow*nCol,1)];
+    windows = [windows;newWindows];
+end
+end
