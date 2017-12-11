@@ -1,6 +1,6 @@
 
 %% training
-inputDir = 'YALE\unpadded\';
+inputDir = '..\images\YALE\unpadded\';
 faceFiles = dir(fullfile(inputDir, '*.pgm'));
 bgFiles = dir(fullfile('bground','*.jpg'));
 nFaceFiles = length(faceFiles);
