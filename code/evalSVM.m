@@ -1,8 +1,10 @@
 
 %% training
-% inputDir = '..\images\YALE\unpadded\';
-inputDir = '..\images\att_faces\*\';
-faceFiles = dir(fullfile(inputDir, '*.pgm'));
+inputDir1 = '..\images\YALE\unpadded\';
+inputDir2 = '..\images\att_faces\*\';
+faceFiles1 = dir(fullfile(inputDir1, '*.pgm'));
+faceFiles2 = dir(fullfile(inputDir2, '*.pgm'));
+faceFiles = [faceFiles1;faceFiles2];
 bgFiles = dir(fullfile('bground','*.jpg'));
 nFaceFiles = length(faceFiles);
 nBgFiles = length(bgFiles);
@@ -20,7 +22,7 @@ labels(nFaceFiles+1:end) = 0;
 
 SVMModel = fitcsvm(features,labels,'kernelFunction','linear','kernelScale',1,'ClassNames',[1,0]);%'rbf'
 %% testing
-testFiles = dir(fullfile('2.jpg'));
+testFiles = dir(fullfile('nasa_small.jpg'));
 iFile = testFiles(1);
 imOrigin = imread(fullfile(iFile.folder,iFile.name));
 im = rgb2gray(imOrigin);
@@ -35,12 +37,27 @@ for i=1:nWindow
     testFeatures = extractFeatures(imWindow);
     [label(i),score(i,:)] = predict(SVMModel,testFeatures);
 end
-
+conf = score(:,1);
 positiveWindow = windows(label==1,:);
+% NMS
+bbox = windows;
+bbox(:,3:4) = bbox(:,3:4)+bbox(:,1:2);
+
+confthresh=0;
+indsel=find(conf>confthresh);
+[nmsbbox,nmsconf]=prunebboxes(bbox(indsel,:),conf(indsel),0.2);
+
+confthreshnms=0;
+nmsbbox=nmsbbox(nmsconf>confthreshnms,:);
+[nmsconf,I] = sort(nmsconf,'descend');
+nmsbbox = nmsbbox(I,:);
+% showbbox(nmsbbox(indsel,:)
+nmsWindow = nmsbbox;
+nmsWindow(:,3:4) = nmsWindow(:,3:4)-nmsWindow(:,1:2);
 %% plot
 imshow(imOrigin);
-for i=1:size(positiveWindow,1)
-    iPositiveWindow = positiveWindow(i,:);
+for i=1:20%size(nmsWindow,1)
+    iPositiveWindow = nmsWindow(i,:);
     rectangle('Position', iPositiveWindow, 'EdgeColor','g', 'LineWidth',2);
 end
 
@@ -49,7 +66,7 @@ function features = extractFeatures(im)
     im = imresize(im,[112,92]);% the size of att_faces, TODO
 %     im = sqrt(double(im));
     % N = prod([BlocksPerImage, BlockSize, NumBins]), BlocksPerImage = floor((size(I)./CellSize - BlockSize)./(BlockSize - BlockOverlap) + 1)
-    features = extractHOGFeatures(im,'CellSize',[20,20], 'BlockSize',[4,4], 'UseSignedOrientation',false, 'NumBins',9);
+    features = extractHOGFeatures(im,'CellSize',[8,8], 'BlockSize',[2,2], 'UseSignedOrientation',false, 'NumBins',9);
 %     features = extractLBPFeatures(im);
     % Square-root scaling
 %     features = sqrt(features);

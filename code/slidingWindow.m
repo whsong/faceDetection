@@ -3,7 +3,7 @@ function [windows] = slidingWindow(im, startSize)
 %   startSize [w,h] row vector 
 % windows  consists of row vectors [left top width height], currently only consider square region
 [h,w] = size(im);
-scales = floor(1.2.^[0:4]'.*startSize);
+scales = floor(1.2.^[3:4]'.*startSize);
 windows = [];
 for i = 1:length(scales)
     iScale = scales(i,:);
@@ -11,9 +11,8 @@ for i = 1:length(scales)
     % windowsPerImage = floor((size(im) - iScale)./stepSize + 1);
     rowInd = 1:stepSize(2):h - iScale(2);
     colInd = 1:stepSize(1):w - iScale(1);
-    nRow = length(rowInd);
-    nCol = length(colInd);
-    newWindows = [kron(ones(nRow,1), colInd.'), kron(rowInd.', ones(nCol,1)), iScale.*ones(nRow*nCol,1)];
+    [C,R] = meshgrid(colInd,rowInd);
+    newWindows = [C(:),R(:), repmat(iScale,numel(C),1)];
     windows = [windows;newWindows];
 end
 end
