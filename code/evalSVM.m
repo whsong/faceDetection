@@ -1,6 +1,7 @@
 
 %% training
-inputDir = '..\images\YALE\unpadded\';
+% inputDir = '..\images\YALE\unpadded\';
+inputDir = '..\images\att_faces\*\';
 faceFiles = dir(fullfile(inputDir, '*.pgm'));
 bgFiles = dir(fullfile('bground','*.jpg'));
 nFaceFiles = length(faceFiles);
@@ -19,10 +20,11 @@ labels(nFaceFiles+1:end) = 0;
 
 SVMModel = fitcsvm(features,labels,'kernelFunction','linear','kernelScale',1,'ClassNames',[1,0]);%'rbf'
 %% testing
-testFiles = dir(fullfile('nasa_small.jpg'));
+testFiles = dir(fullfile('3.jpeg'));
 iFile = testFiles(1);
-im = rgb2gray(imread(fullfile(iFile.folder,iFile.name)));
-windows = slidingWindow(im, [20,20]);
+imOrigin = imread(fullfile(iFile.folder,iFile.name));
+im = rgb2gray(imOrigin);
+windows = slidingWindow(im, [30,30]);
 
 nWindow = size(windows,1);
 label = nan(nWindow,1);
@@ -36,14 +38,21 @@ end
 
 positiveWindow = windows(label==1,:);
 %% plot
-imshow(im);
+imshow(imOrigin);
 for i=1:size(positiveWindow,1)
     iPositiveWindow = positiveWindow(i,:);
     rectangle('Position', iPositiveWindow, 'EdgeColor','g', 'LineWidth',2);
 end
+
 function features = extractFeatures(im)
 
     im = imresize(im,[112,92]);% the size of att_faces, TODO
+%     im = sqrt(double(im));
     % N = prod([BlocksPerImage, BlockSize, NumBins]), BlocksPerImage = floor((size(I)./CellSize - BlockSize)./(BlockSize - BlockOverlap) + 1)
-    features = extractHOGFeatures(im,'CellSize',[8,8], 'BlockSize',[2,2], 'UseSignedOrientation',false, 'NumBins',8);
+    features = extractHOGFeatures(im,'CellSize',[8,8], 'BlockSize',[2,2], 'UseSignedOrientation',false, 'NumBins',9);
+%     features = extractLBPFeatures(im);
+    % Square-root scaling
+    features = sqrt(features);
+    % L2-normalization
+%     features = features./sqrt(sum(features.^2,1));
 end
