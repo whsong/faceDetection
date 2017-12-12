@@ -3,7 +3,7 @@ function [windows] = slidingWindow(im, startSize)
 %   startSize [w,h] row vector 
 % windows  consists of row vectors [left top width height], currently only consider square region
 [h,w] = size(im);
-scales = floor(1.5.^[0:2]'.*startSize);
+scales = floor(1.3.^[0:4]'.*startSize);
 windows = [];
 for i = 1:length(scales)
     iScale = scales(i,:);

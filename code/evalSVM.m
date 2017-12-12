@@ -20,11 +20,11 @@ labels(nFaceFiles+1:end) = 0;
 
 SVMModel = fitcsvm(features,labels,'kernelFunction','linear','kernelScale',1,'ClassNames',[1,0]);%'rbf'
 %% testing
-testFiles = dir(fullfile('3.jpeg'));
+testFiles = dir(fullfile('2.jpg'));
 iFile = testFiles(1);
 imOrigin = imread(fullfile(iFile.folder,iFile.name));
 im = rgb2gray(imOrigin);
-windows = slidingWindow(im, [30,30]);
+windows = slidingWindow(im, [20,20]);
 
 nWindow = size(windows,1);
 label = nan(nWindow,1);
@@ -49,10 +49,10 @@ function features = extractFeatures(im)
     im = imresize(im,[112,92]);% the size of att_faces, TODO
 %     im = sqrt(double(im));
     % N = prod([BlocksPerImage, BlockSize, NumBins]), BlocksPerImage = floor((size(I)./CellSize - BlockSize)./(BlockSize - BlockOverlap) + 1)
-    features = extractHOGFeatures(im,'CellSize',[8,8], 'BlockSize',[2,2], 'UseSignedOrientation',false, 'NumBins',9);
+    features = extractHOGFeatures(im,'CellSize',[20,20], 'BlockSize',[2,2], 'UseSignedOrientation',false, 'NumBins',9);
 %     features = extractLBPFeatures(im);
     % Square-root scaling
-    features = sqrt(features);
+%     features = sqrt(features);
     % L2-normalization
 %     features = features./sqrt(sum(features.^2,1));
 end
