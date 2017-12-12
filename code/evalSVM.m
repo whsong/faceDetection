@@ -49,7 +49,7 @@ function features = extractFeatures(im)
     im = imresize(im,[112,92]);% the size of att_faces, TODO
 %     im = sqrt(double(im));
     % N = prod([BlocksPerImage, BlockSize, NumBins]), BlocksPerImage = floor((size(I)./CellSize - BlockSize)./(BlockSize - BlockOverlap) + 1)
-    features = extractHOGFeatures(im,'CellSize',[20,20], 'BlockSize',[2,2], 'UseSignedOrientation',false, 'NumBins',9);
+    features = extractHOGFeatures(im,'CellSize',[20,20], 'BlockSize',[4,4], 'UseSignedOrientation',false, 'NumBins',9);
 %     features = extractLBPFeatures(im);
     % Square-root scaling
 %     features = sqrt(features);
