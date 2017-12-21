@@ -41,7 +41,6 @@ layers = [ ...
     maxPooling2dLayer([2,2]);
     convolution2dLayer([5 5],50);
     maxPooling2dLayer([2,2]);
-    convolution2dLayer([4 4],500);
     fullyConnectedLayer(numClassesPlusBackground);
     softmaxLayer()
     classificationLayer()];
