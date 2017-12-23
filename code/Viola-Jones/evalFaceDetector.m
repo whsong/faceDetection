@@ -6,8 +6,8 @@
 % imOrigin = imread(fullfile(iFile.folder,iFile.name));
 % im = rgb2gray(imOrigin);
 
-faceDetector = vision.CascadeObjectDetector;%Pre-trained square front face detector. can change to other detector.
-
+% faceDetector = vision.CascadeObjectDetector;%Pre-trained square front face detector. can change to other detector.
+faceDetector = rcnn;
 rootDir = 'D:\Documents\UMass\Study\17Fall\COMPSCI670-SEC01 Computer Vision Fall 2017\Final Project\final project papers\WIDER\';
 metaDir = fullfile(rootDir, 'wider_face_split');
 val = load(fullfile(metaDir,'wider_face_val_10.mat'));
@@ -29,12 +29,13 @@ for i=1:numDir
 %         iFile = evalFiles(j);
         I = imread(iFilename);
 %         I = imread(fullfile(iFile.folder,iFile.name));
-        bboxes = step(faceDetector, I);
-        scores = [size(bboxes,1):-1:1].';% Problem is here. Viola-Jones method does have have the concept of score and I made up one.
+        [bboxes,scores] = detect(faceDetector,I);
+%         bboxes = step(faceDetector, I);
+%         scores = [size(bboxes,1):-1:1].';% Problem is here. Viola-Jones method does have have the concept of score and I made up one.
         %     results(i).Boxes = bboxes;
         %     results(i).Scores = scores;
-        % IFaces = insertObjectAnnotation(I, 'rectangle', bboxes, '');
-        % figure, imshow(IFaces), title('Detected faces');
+        IFaces = insertObjectAnnotation(I, 'rectangle', bboxes, '');
+        figure, imshow(IFaces), title('Detected faces');
         
 %         C = strsplit(iFile.folder,filesep);
 %         outSubFolder = fullfile(outDir, C{end});
